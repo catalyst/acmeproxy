@@ -42,8 +42,8 @@ PowerDNS requires that the `Content-Length` header be present in backend respons
           Require ip 127.0.0.1
       </Location>
 
-      SSLCertificateFile /etc/letsencrypt/live/cat-prod-acmeproxyns1.catalyst.net.nz/fullchain.pem
-      SSLCertificateKeyFile /etc/letsencrypt/live/cat-prod-acmeproxyns1.catalyst.net.nz/privkey.pem 
+      SSLCertificateFile /etc/letsencrypt/live/acme-proxy-ns1.example.com/fullchain.pem
+      SSLCertificateKeyFile /etc/letsencrypt/live/acme-proxy-ns1.example.com/privkey.pem 
       Include /etc/letsencrypt/options-ssl-apache.conf
     </VirtualHost>
 
