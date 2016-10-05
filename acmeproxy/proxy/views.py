@@ -1,6 +1,7 @@
-import time
 from datetime import timedelta
+import time
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -30,8 +31,8 @@ def get_authorisation(name, secret):
             authorisation = Authorisation.objects.get(name__iexact='.'.join(name.split('.')[1:]), secret=secret, suffix_match=True)
         except ObjectDoesNotExist:
             return(False)
-    else:
-        return(authorisation)
+
+    return(authorisation)
 
 def lookup(request, qname, qtype):
     """
@@ -50,6 +51,8 @@ def lookup(request, qname, qtype):
 
     try: # find the newest response for a given zone name
         response = Response.objects.filter(name__iexact=zone_name, created_at__gt=threshold).order_by('-created_at')[0]
+        if not response.live():
+            raise IndexError
     except IndexError:
         return(JsonResponse({'result': []}))
 
@@ -60,6 +63,7 @@ def lookup(request, qname, qtype):
                 "qtype": "SOA",
                 "qname": "%s" % zone_name,
                 "content": "cat-prod-acmeproxyns1.catalyst.net.nz. hostmaster.catalyst.net.nz. %s 0 0 0 0" % str(int(time.time())),
+                "ttl": 0,
             }
         )
     if request_challenge and qtype in ('ANY', 'TXT'):
@@ -68,6 +72,7 @@ def lookup(request, qname, qtype):
                 "qtype": "TXT",
                 "qname": "%s" % qname,
                 "content": response.response,
+                "ttl": 0,
             }
         )
 
@@ -104,7 +109,7 @@ def publish_response(request):
         return JsonResponse({'result': False}, status=400)
 
     authorisation = get_authorisation(name, secret)
-   
+
     if authorisation:
         try:
             db_response = Response(name=name, response=response, created_by_ip=client_ip(request))
@@ -126,8 +131,8 @@ def expire_response(request):
         return JsonResponse({'result': False}, status=405)
 
     try:
-        secret = request.POST['secret']
         name = request.POST['name'].lower()
+        secret = request.POST['secret']
     except:
         return JsonResponse({'result': False}, status=400)
     
@@ -164,3 +169,31 @@ def create_authorisation(request):
 
     return JsonResponse({"result": {'authorisation': db_authorisation.name, 'suffix_match': db_authorisation.suffix_match, 'secret': db_authorisation.secret}})
     
+@csrf_exempt
+def expire_authorisation(request):
+    """
+    Expire an existing authorisation secret key.
+    """
+
+    if request.method != 'POST':
+        return JsonResponse({'result': False}, status=405)
+
+    try:
+        name = request.POST['name'].lower()
+        secret = request.POST['secret']
+    except:
+        return JsonResponse({'result': False}, status=400)
+
+    authorisation = get_authorisation(name, secret)
+       
+    if authorisation:
+        try:
+            authorisation.reset_secret()
+            authorisation.save()
+        except:
+            return JsonResponse({'result': False}, status=500)
+        else:
+            return JsonResponse({"result": {'authorisation': authorisation.name, 'suffix_match': authorisation.suffix_match, 'secret': authorisation.secret}})
+    
+    return(JsonResponse({'result': False}, status=403))
+

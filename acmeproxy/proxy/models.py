@@ -27,13 +27,13 @@ class Response(models.Model):
     response = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     created_by_ip = models.GenericIPAddressField(verbose_name="Created by IP address")
-    expired_at = models.DateTimeField(null=True)
+    expired_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return("_acme-challenge.%s IN TXT %s" % (self.name, self.response))
 
     def live(self):
         threshold = timezone.now() - timedelta(minutes=5)
-        return(self.created_at > threshold)
+        return(self.created_at > threshold and (self.expired_at is None or self.expired_at > timezone.now()))
     live.boolean = True
 

@@ -7,7 +7,7 @@ class AuthorisationAdmin(admin.ModelAdmin):
     fields = (('name', 'suffix_match'), 'secret')
 
 class ResponseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'response', 'created_at', 'live', 'created_by_ip')
+    list_display = ('name', 'response', 'created_at', 'expired_at', 'live', 'created_by_ip')
 
 admin.site.register(Authorisation, AuthorisationAdmin)
 admin.site.register(Response, ResponseAdmin)
