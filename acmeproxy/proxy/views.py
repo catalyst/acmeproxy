@@ -62,8 +62,8 @@ def lookup(request, qname, qtype):
             {
                 "qtype": "SOA",
                 "qname": "%s" % zone_name,
-                "content": "cat-prod-acmeproxyns1.catalyst.net.nz. hostmaster.catalyst.net.nz. %s 0 0 0 0" % str(int(time.time())),
-                "ttl": 0,
+                "content": "%s. %s. %s 0 0 0 0" % (settings.ACMEPROXY_SOA_HOSTNAME, settings.ACMEPROXY_SOA_CONTACT, str(int(time.time()))),
+                "ttl": 5,
             }
         )
     if request_challenge and qtype in ('ANY', 'TXT'):
@@ -72,7 +72,7 @@ def lookup(request, qname, qtype):
                 "qtype": "TXT",
                 "qname": "%s" % qname,
                 "content": response.response,
-                "ttl": 0,
+                "ttl": 5,
             }
         )
 
