@@ -155,11 +155,11 @@ def create_authorisation(request):
 
     try:
         name = request.POST['name'].lower()
-        suffix_match = (request.POST.get('suffix_match', 'false').lower() == 'true')
+        suffix_match = False # XXX suffix matching is disabled until a security verification is implemented (e.g. a 2nd DNS challenge)(request.POST.get('suffix_match', 'false').lower() == 'true')
     except:
         return JsonResponse({'result': False}, status=400)
 
-    db_authorisation = Authorisation(name=name, suffix_match=suffix_match, created_by_ip=get_client_ip(request))
+    db_authorisation = Authorisation(name=name, suffix_match=suffix_match, created_by_ip=client_ip(request))
     db_authorisation.reset_secret()
 
     try:

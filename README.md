@@ -10,7 +10,7 @@ An example [dehydrated](http://dehydrated.de/) plugin is supplied in the `plugin
 
 ## Deployment
 
-PowerDNS requires that the `Content-Length` header be present in backend responses, so a reverse proxy such as Apache is required. 
+PowerDNS requires that the `Content-Length` header be present in backend responses, so a reverse proxy such as Apache is required.
 
 ### Example Apache w/ certbot configuration
 
@@ -37,13 +37,13 @@ PowerDNS requires that the `Content-Length` header be present in backend respons
 
       ProxyPass / http://127.0.0.1:8000/
       ProxyPassReverse / http://127.0.0.1:8000/
-      
+
       <Location /admin>
           Require ip 127.0.0.1
       </Location>
 
       SSLCertificateFile /etc/letsencrypt/live/acme-proxy-ns1.example.com/fullchain.pem
-      SSLCertificateKeyFile /etc/letsencrypt/live/acme-proxy-ns1.example.com/privkey.pem 
+      SSLCertificateKeyFile /etc/letsencrypt/live/acme-proxy-ns1.example.com/privkey.pem
       Include /etc/letsencrypt/options-ssl-apache.conf
     </VirtualHost>
 
@@ -72,12 +72,10 @@ All API endpoints will return JSON containing a `result` key describing the resu
 
 Before delegating any names an **authorisation** should be requested using the `create_authorisation` endpoint.
 
-    $ curl --data "name=secure.example.com&suffix_match=false" https://acme-proxy-ns1.example.com/create_authorisation
+    $ curl --data "name=secure.example.com" https://acme-proxy-ns1.example.com/create_authorisation
     {"result": {"secret": "52f562aedc99383c6af848bc7016380a", "authorisation": "secure.example.com", "suffix_match": false}}
 
 The randomly generated `secret` is then used to identify this authorisation in further calls to the API.
-
-For cases where you would like an authorisation for `example.com` to be able to issue certificates for all names under `example.com` (e.g. `secure.example.com`) without explicit configuration, set `suffix_match` to `true`.
 
 To re-generate the authentication secret for a given authorisation the `expire_authorisation` endpoint may be used.
 
@@ -89,12 +87,12 @@ To re-generate the authentication secret for a given authorisation the `expire_a
 During an ACME dns-01 challenge it is necessary to publish a **challenge response** string supplied by the ACME client. The `publish_response` endpoint allows a response to be published for a name that has been registered with an authorisation.
 
     $ curl --data "name=secure.example.com&response=evaGxfADs6pSRb2LAv9IZf17Dt3juxGJ-PCt92wr-oA&secret=52f562aedc99383c6af848bc7016380a" https://acme-proxy-ns1.example.com/publish_response
-    {"result": {"authorisation": "example.com", "suffix_match": true, "published": true}}
+    {"result": {"authorisation": "secure.example.com", "suffix_match": false, "published": true}}
 
 Optionally a client may request that all challenge responses for a name be expired once they are no longer required, however the backend will expire them regardless after five minutes.
 
     $ curl --data "name=secure.example.com&secret=52f562aedc99383c6af848bc7016380a" https://acme-proxy-ns1.example.com/expire_response
-    {"result": {"authorisation": "example.com", "suffix_match": true, "expired": true}}
+    {"result": {"authorisation": "secure.example.com", "suffix_match": false, "expired": true}}
 
 ### DNS usage
 
@@ -103,11 +101,11 @@ Suppose you have a domain `example.com` and wish to issue certificates for `secu
 By registering an authorisation through the HTTPS API then adding a delegation for the expected challenge, `_acme-challenge.secure.example.com` it is possible to response to those challenges with data supplied using an HTTPS POST to the server.
 
     _acme-challenge.secure.example.com. IN NS acme-proxy-ns1.example.com
-    
+
 It should also be possible to load this backend along side your existing backends, though that functionality is not yet fully tested.
 
 Once the delegation is made a response can be published using the `publish_response` endpoint of the HTTPS API during ACME certification issuance.
 
 ## Caveats
 
-Presently there is no access control on who may register a new authorisation. This will be added in a future release. 
+Presently there is no access control on who may register a new authorisation. This will be added in a future release.
