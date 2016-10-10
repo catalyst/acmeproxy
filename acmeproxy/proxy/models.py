@@ -12,6 +12,7 @@ class Authorisation(models.Model):
     secret = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     created_by_ip = models.GenericIPAddressField(verbose_name="Created by IP address")
+    account = models.CharField(max_length=255)
     
     class Meta:
         unique_together = ('name', 'suffix_match')
