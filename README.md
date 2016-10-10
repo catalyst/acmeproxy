@@ -2,6 +2,15 @@
 
 This PowerDNS backend only serves [ACME dns-01 challenge responses](https://tools.ietf.org/html/draft-ietf-acme-acme-01), and exposes an HTTPS API to permit those challenge responses to be published by automated certificate renewal tools.
 
+## Requirements
+
+    django==1.8
+    tabulate
+
+For convenience sake the Ubuntu Xenial packages for django and tabulate are targeted, you can install the dependencies with:
+
+    apt-get install python3-django python3-tabulate
+
 ## Use with dehydrated
 
 An example [dehydrated](http://dehydrated.de/) plugin is supplied in the `plugins` directory. Edit this plugin to specify the location of your acmeproxy installation and authorisation key registered with the API, then call it as a dns-01 hook.
@@ -75,7 +84,9 @@ Before delegating any names an **authorisation** should be requested using the `
     $ curl --data "name=secure.example.com" https://acme-proxy-ns1.example.com/create_authorisation
     {"result": {"secret": "52f562aedc99383c6af848bc7016380a", "authorisation": "secure.example.com", "suffix_match": false}}
 
-The randomly generated `secret` is then used to identify this authorisation in further calls to the API.
+If authentication is enabled in your installation (with the `ACMEPROXY_AUTHORISATION_CREATION_SECRETS` setting configured to something other than `None`) you will also need to supply a `secret` field corresponding to the account being used.
+
+The randomly generated `secret` returned by this call is then used to identify this authorisation in further calls to the API.
 
 To re-generate the authentication secret for a given authorisation the `expire_authorisation` endpoint may be used.
 
@@ -106,6 +117,37 @@ It should also be possible to load this backend along side your existing backend
 
 Once the delegation is made a response can be published using the `publish_response` endpoint of the HTTPS API during ACME certification issuance.
 
-## Caveats
+### Command line tools
 
-Presently there is no access control on who may register a new authorisation. This will be added in a future release.
+There are several Django management commands available in the `proxy` app.
+
+#### listauthorisations 
+
+Lists all authorisations present in the database.
+
+    $ python manage.py listauthorisations
+    name                   created_by_ip    created_at                        account
+    ---------------------  ---------------  --------------------------------  ---------
+    secure.example.com     192.0.2.1        2016-10-10 03:11:18.525111+00:00  operations
+    test.example.org       192.0.2.1        2016-10-10 03:50:35.827334+00:00  test
+    host1.example.com      192.0.2.1        2016-10-10 03:51:38.185688+00:00  operations
+
+#### deleteauthorisation
+
+Permanently remove an authorisation from the database.
+
+    $ python manage.py deleteauthorisation test.example.org
+    Successfully deleted authorisation "test.example.org"
+
+#### listresponses
+
+List the audit log of challenge responses that have been published, optionally between any two dates.
+
+    $ python manage.py listresponses --start=2016-09-01 --end=2016-12-30
+    name                 expired_at                        created_by_ip    created_at
+    -------------------  --------------------------------  ---------------  --------------------------------
+    secure.example.com   2016-10-10 03:12:05.984890+00:00  192.0.2.1        2016-10-09 21:47:24.236299+00:00
+    test.example.org     2016-10-10 03:12:05.984890+00:00  192.0.2.1        2016-10-10 03:12:04.833764+00:00
+
+A response will have an `expired_at` value if the ACME client explicitly marked all challenges for a name as complete.
+
