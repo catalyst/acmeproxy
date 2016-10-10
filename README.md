@@ -19,6 +19,8 @@ An example [dehydrated](http://dehydrated.de/) plugin is supplied in the `plugin
 
 ## Deployment
 
+You must edit the `settings.py` file in `acmeproxy/acmeproxy` to set SOA details and optionally to enable authentication. At present sessions are not used so SECRET_KEY could be left blank, but it is suggested this be set to allow for future use.
+
 PowerDNS requires that the `Content-Length` header be present in backend responses, so a reverse proxy such as Apache is required.
 
 ### Example Apache w/ certbot configuration
