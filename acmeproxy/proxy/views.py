@@ -34,53 +34,143 @@ def get_authorisation(name, secret):
 
     return(authorisation)
 
+def create_records(name_records, response=None, name=None):
+    """
+    Create the appropriate DNS records for the given response/name
+    in the name records database. This operates using one of two
+    parameters:
+    * name - used for upper level domain names from the zones for which
+             challenge responses are made, does NOT create _acme-challenge
+             SOA and TXT records
+    * response - used for challenge response domain name queries, creates
+                 _acme-challenge subdomain SOA and TXT records using the
+                 information from the Response object
+    """
+
+    if not response and name: # Upper level domain query.
+        name_records[name] = {}
+    elif response and not name: # Challenge response domain query.
+        name = response.name
+        name_records[name] = {}
+        acme_name = '_acme-challenge.%s' % name
+        name_records[acme_name] = {}
+    elif response and name:
+        raise RuntimeError(
+            'response and name are mutually exclusive: response=%s, name=%s' %
+                    (response, name),
+        )
+    else:
+        raise RuntimeError(
+            'one of response and name should be specified: response=%s, name=%s' %
+                    (response, name),
+        )
+
+    # Certificate Authority Authorisation (CAA) record, authorising
+    # Let's Encrypt to generate certificates for the zone.
+    record = Record.objects.create()
+    record.name = name
+    record.type = 'CAA'
+    record.ttl = 5
+    record.content = '0 issue "letsencrypt.org"'
+    name_records[name]['CAA'] = record
+
+    # Start Of Authority (SOA) record, specifying authoritative information about
+    # the DNS zone.
+    record = Record.objects.create()
+    record.name = name
+    record.type = 'SOA'
+    record.ttl = 5
+    record.content = '%s. %s. %s 0 0 0 0' % (
+        settings.ACMEPROXY_SOA_HOSTNAME,
+        settings.ACMEPROXY_SOA_CONTACT,
+        str(int(time.time())),
+    )
+    name_records[name]['SOA'] = record
+
+    # These records only get created if create_records gets passed
+    # a full record with a challenge response stored in it, rather
+    # than just a name.
+    if response:
+        # Create ACME challenge response subdomain equivalent.
+        record = Record.objects.create()
+        record.name = acme_name
+        record.type = 'SOA'
+        record.ttl = 5
+        record.content = '%s. %s. %s 0 0 0 0' % (
+            settings.ACMEPROXY_SOA_HOSTNAME,
+            settings.ACMEPROXY_SOA_CONTACT,
+            str(int(time.time())),
+        )
+        name_records[acme_name]['SOA'] = record
+
+        # TXT records to store the response for the ACME challenge.
+        record = Record.objects.create()
+        record.name = name
+        record.type = 'TXT'
+        record.ttl = 5
+        record.content = response.response
+        name_records[name]['TXT'] = record
+
+        record = Record.objects.create()
+        record.name = acme_name
+        record.type = 'TXT'
+        record.ttl = 5
+        record.content = response.response
+        name_records[acme_name]['TXT'] = record
+
 def lookup(request, qname, qtype):
     """
     Queried by PowerDNS to return the public challenge response and other sundry DNS stuff for a name. XXX This method could be tidier.
     """
 
-    qname_parts = qname.split('.')
+    # Create the record database and the TTL value for its
+    # records.
+    name_records = {}
     threshold = timezone.now() - timedelta(minutes=5)
 
-    if qname_parts[0].lower() == '_acme-challenge': # determine the underlying zone name for a request
-        zone_name = '.'.join(qname_parts[1:]).lower().strip('.')
-        request_challenge = True
+    # Get the query name from the input, and filter the zone name
+    # from it, if it's an ACME challenge request.
+    query_name = qname.strip('.')
+
+    query_name_parts = query_name.split('.')
+    if query_name_parts[0].lower() == '_acme-challenge':
+        zone_name = '.'.join(query_name_parts[1:]).lower()
     else:
-        zone_name = qname.lower().strip('.')
-        request_challenge = False
+        zone_name = query_name.lower()
 
-    try: # find the newest response for a given zone name
-        response = Response.objects.filter(name__iexact=zone_name, created_at__gt=threshold).order_by('-created_at')[0]
-        if not response.live():
-            raise IndexError
-    except IndexError:
-        return(JsonResponse({'result': []}))
+    # Fill the database with the minimum amount of records
+    # to handle the query.
+    response_filter = Response.objects.filter(name__iexact=zone_name)
+    if response_filter:
+        create_records(name_records, response=response_filter[0])
+    else:
+        response_filter = Response.objects.filter(name__iregex=r'^[^\.]*\.?%s$' % zone_name)
+        if response_filter:
+            create_records(name_records, name=zone_name)
+        else: # No records at all related to this zone name: empty response.
+            return JsonResponse({'result': []})
 
-    result = []
-    if not request_challenge and qtype in ('ANY', 'SOA'):
-        result.append(
-            {
-                "qtype": "SOA",
-                "qname": "%s" % zone_name,
-                "content": "%s. %s. %s 0 0 0 0" % (settings.ACMEPROXY_SOA_HOSTNAME, settings.ACMEPROXY_SOA_CONTACT, str(int(time.time()))),
-                "ttl": 5,
-            }
-        )
-    if request_challenge and qtype in ('ANY', 'TXT'):
-        result.append(
-            {
-                "qtype": "TXT",
-                "qname": "%s" % qname,
-                "content": response.response,
-                "ttl": 5,
-            }
-        )
+    # Get requested records and form a JSON response with them.
+    records = ()
+    results = []
 
-    response = {
-        "result": result,
-    }
+    if qtype == 'ANY':
+        records = name_records[query_name].values()
+    elif qtype in name_records[query_name]:
+        records = (name_records[query_name][qtype],)
 
-    return JsonResponse(response)
+    if records:
+        for record in records:
+            results.append(
+                {
+                    'qtype': record.type,
+                    'qname': record.name,
+                    'ttl': record.ttl,
+                    'content': record.content,
+                }
+            )
+
+    return JsonResponse({'result': results})
 
 def not_implemented(request):
     """

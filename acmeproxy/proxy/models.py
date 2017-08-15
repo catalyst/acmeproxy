@@ -38,3 +38,17 @@ class Response(models.Model):
         return(self.created_at > threshold and (self.expired_at is None or self.expired_at > timezone.now()))
     live.boolean = True
 
+class Record(models.Model):
+    domain_id = models.IntegerField(null=True, blank=True)
+
+    name = models.CharField(max_length=255, null=True, blank=True)
+    type = models.CharField(max_length=10, null=True, blank=True)
+    content = models.CharField(max_length=64000, null=True, blank=True)
+
+    ttl = models.IntegerField(null=True, blank=True)
+    prio = models.IntegerField(null=True, blank=True)
+    change_date = models.IntegerField(null=True, blank=True)
+
+    disabled = models.BooleanField(default=False)
+    ordername = models.CharField(max_length=255, null=True, blank=True)
+    auth = models.BooleanField(default=True)
