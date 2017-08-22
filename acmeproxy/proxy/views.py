@@ -79,8 +79,7 @@ def create_name_records(response=None, name=None):
 
     # Start Of Authority (SOA) record, specifying authoritative information about
     # the DNS zone.
-    record = Record.objects.create()
-    {
+    record = {
         'name': name,
         'type': 'SOA',
         'ttl': 5,
