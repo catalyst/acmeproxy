@@ -149,11 +149,25 @@ def lookup(request, qname, qtype):
 
     # Fill the database with the minimum amount of records
     # to handle the query.
-    response_filter = Response.objects.filter(name__iexact=zone_name)
+    #
+    # First, check if a response for the exact zone name
+    # requested is in the database. If so, create name records
+    # based on that response, suitable for an ACME challenge-response.
+    response_filter = Response.objects.filter(
+        name__iexact=zone_name,
+        expired_at__isnull=True,
+    )
     if response_filter:
         name_records = create_name_records(response=response_filter[0])
+    # If there is no response found for the exact zone name,
+    # look for a response based on a subdomain for the zone name.
+    # If found, create a smaller set of name records for the zone name,
+    # suitable to identify the zone as one which this name server controls.
     else:
-        response_filter = Response.objects.filter(name__iregex=r'^[^\.]*\.?%s$' % zone_name)
+        response_filter = Response.objects.filter(
+            name__iregex=r'^[^\.]*\.?%s$' % zone_name,
+            expired_at__isnull=True,
+        )
         if response_filter:
             name_records = create_name_records(name=zone_name)
         else: # No records at all related to this zone name: empty response.
