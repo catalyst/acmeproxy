@@ -195,6 +195,16 @@ def lookup(request, qname, qtype):
 
     return JsonResponse({'result': results})
 
+def lookup_root_zone(request, qtype):
+    """
+    Stub API endpoint to handle calls to lookup the DNS root zone (.)
+    which PowerDNS does. This often results in mangled URLs to remove the
+    segment, as the name '.' can be interpreted in a directory hierarchy as
+    a special reference to the current directory.
+    """
+
+    return lookup(request, '.', qtype)
+
 def not_implemented(request):
     """
     Returned to PowerDNS for all unimplemented API endpoints.
