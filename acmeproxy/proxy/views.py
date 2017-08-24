@@ -132,68 +132,90 @@ def lookup(request, qname, qtype):
     Queried by PowerDNS to return the public challenge response and other sundry DNS stuff for a name. XXX This method could be tidier.
     """
 
-    # Create the record database and the TTL value for its
-    # records.
-    name_records = {}
-    threshold = timezone.now() - timedelta(minutes=5)
+    # Response data.
+    result = []
+    log = ['[acmeproxy]: [INFO] requested: %s IN %s' % (qname, qtype)]
 
-    # Get the query name from the input, and filter the zone name
-    # from it, if it's an ACME challenge request.
-    query_name = qname.strip('.')
+    try:
+        # Create the record database and the TTL value for its
+        # records.
+        name_records = {}
+        threshold = timezone.now() - timedelta(minutes=5)
 
-    query_name_parts = query_name.split('.')
-    if query_name_parts[0].lower() == '_acme-challenge':
-        zone_name = '.'.join(query_name_parts[1:]).lower()
-    else:
-        zone_name = query_name.lower()
+        # Get the query name from the input, and filter the zone name
+        # from it, if it's an ACME challenge request.
+        query_name = qname.strip('.')
 
-    # Fill the database with the minimum amount of records
-    # to handle the query.
-    #
-    # First, check if a response for the exact zone name
-    # requested is in the database. If so, create name records
-    # based on that response, suitable for an ACME challenge-response.
-    response_filter = Response.objects.filter(
-        name__iexact=zone_name,
-        expired_at__isnull=True,
-    )
-    if response_filter:
-        name_records = create_name_records(response=response_filter[0])
-    # If there is no response found for the exact zone name,
-    # look for a response based on a subdomain for the zone name.
-    # If found, create a smaller set of name records for the zone name,
-    # suitable to identify the zone as one which this name server controls.
-    else:
+        query_name_parts = query_name.split('.')
+        if query_name_parts[0].lower() == '_acme-challenge':
+            zone_name = '.'.join(query_name_parts[1:]).lower()
+        else:
+            zone_name = query_name.lower()
+
+        # Fill the database with the minimum amount of records
+        # to handle the query.
+        #
+        # First, check if a response for the exact zone name
+        # requested is in the database. If so, create name records
+        # based on that response, suitable for an ACME challenge-response.
         response_filter = Response.objects.filter(
-            name__iregex=r'^[^\.]*\.?%s$' % zone_name,
+            name__iexact=zone_name,
             expired_at__isnull=True,
         )
         if response_filter:
-            name_records = create_name_records(name=zone_name)
-        else: # No records at all related to this zone name: empty response.
-            return JsonResponse({'result': []})
-
-    # Get requested records and form a JSON response with them.
-    records = ()
-    results = []
-
-    if qtype == 'ANY':
-        records = name_records[query_name].values()
-    elif qtype in name_records[query_name]:
-        records = (name_records[query_name][qtype],)
-
-    if records:
-        for record in records:
-            results.append(
-                {
-                    'qtype': record['type'],
-                    'qname': record['name'],
-                    'ttl': record['ttl'],
-                    'content': record['content'],
-                }
+            name_records = create_name_records(response=response_filter[0])
+        # If there is no response found for the exact zone name,
+        # look for a response based on a subdomain for the zone name.
+        # If found, create a smaller set of name records for the zone name,
+        # suitable to identify the zone as one which this name server controls.
+        else:
+            response_filter = Response.objects.filter(
+                name__iregex=r'^[^\.]*\.?%s$' % zone_name,
+                expired_at__isnull=True,
             )
+            if response_filter:
+                name_records = create_name_records(name=zone_name)
+            else: # No records at all related to this zone name: empty response.
+                result = False
+                log.append('[acmeproxy]: [INFO] no records found for name "%s"' % qname)
+                return JsonResponse({'result': result, 'log': log})
 
-    return JsonResponse({'result': results})
+        # Get requested records and form a JSON response with them.
+        records = ()
+
+        if qtype == 'ANY':
+            records = name_records[query_name].values()
+        elif qtype in name_records[query_name]:
+            records = (name_records[query_name][qtype],)
+
+        if records:
+            for record in records:
+                result.append(
+                    {
+                        'qtype': record['type'],
+                        'qname': record['name'],
+                        'ttl': record['ttl'],
+                        'content': record['content'],
+                    }
+                )
+                log.append(
+                    '[acmeproxy]: [INFO] found: %s. %i IN %s %s' % (
+                        record['name'],
+                        record['ttl'],
+                        record['type'],
+                        record['content'],
+                    ),
+                )
+        else:
+            result = False
+            log.append('[acmeproxy]: [INFO] no %s record found for name "%s"' % (qtype, qname))
+
+        return JsonResponse({'result': result, 'log': log})
+
+    except Exception as err:
+        result = False
+        log.append('[acmeproxy]: [ERROR] %s' % err)
+        return JsonResponse({'result': result, 'log': log}, status=500)
 
 def lookup_root_zone(request, qtype):
     """
