@@ -21,24 +21,8 @@ An example [dehydrated](http://dehydrated.de/) plugin is supplied in the `plugin
 
 You must edit the `settings.py` file in `acmeproxy/acmeproxy` to set SOA details and optionally to enable authentication. At present sessions are not used so SECRET_KEY could be left blank, but it is suggested this be set to allow for future use.
 
-PowerDNS requires that the `Content-Length` header be present in backend responses, so a reverse proxy such as Apache is required.
+### Example Apache configuration when certbot is used for the API certificate
 
-### Example Apache w/ certbot configuration
-
-    <VirtualHost *:80>
-      DocumentRoot /var/www/html
-
-      ErrorLog ${APACHE_LOG_DIR}/error.log
-      CustomLog ${APACHE_LOG_DIR}/access.log combined
-
-      ProxyPass / http://127.0.0.1:8000/
-      ProxyPassReverse / http://127.0.0.1:8000/
-
-      RewriteEngine on
-      RewriteCond %{SERVER_NAME} =acme-proxy-ns1.example.com
-      RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1$
-      RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,QSA,R=permanent]
-    </VirtualHost>
     <VirtualHost *:443>
       ServerName acme-proxy-ns1.example.com
       DocumentRoot /var/www/html
@@ -70,8 +54,9 @@ PowerDNS requires that the `Content-Length` header be present in backend respons
 
 #### /etc/powerdns/pdns.d/acmeproxy.conf
 
-    launch=remote
-    remote-connection-string=http:url=http://127.0.0.1/dns,url-suffix=,timeout=2000
+    launch=pipe
+    pipe-command=/opt/acmeproxy/backend
+    pipe-timeout=4000
 
 ## API documentation
 
