@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # acmeproxy dns-01 hook for <http://dehydrated.de/>
-# Michael Fincham <michael.fincham@catalyst.net.nz> 2016-09-30
+# Michael Fincham <michael.fincham@catalyst.net.nz>
 #
 # Usage:
 # dehydrated -c -t dns-01 -k ./acmeproxy-dehydrated.sh -d example.com
@@ -30,6 +30,10 @@ case ${1} in
     ;;
     deploy_cert)
         echo " + This DNS hook cannot deploy certificates. Certificate will need to be manually deployed!"
+    ;;
+    startup_hook)
+    ;;
+    exit_hook)
     ;;
     *_cert)
     ;;
