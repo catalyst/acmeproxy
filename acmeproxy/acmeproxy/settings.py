@@ -16,8 +16,13 @@ ACMEPROXY_AUTHORISATION_CREATION_SECRETS = None
 # otherwise you can set up API keys like so...
 #
 # ACMEPROXY_AUTHORISATION_CREATION_SECRETS = { 
-#     'dbb62ae39642b9d2e81ee7a5e5e8d175': 'operations-team',
-#     '18084e750a1cff6f2d627e7a568ab81a': 'developers',
+#     'dbb62ae39642b9d2e81ee7a5e5e8d175': {
+#         'name': 'operations-team',
+#         'permit': ['example.com', '.example.org'], <--- optional list of valid names
+#     }
+#     '18084e750a1cff6f2d627e7a568ab81a': {
+#         'name': 'developers',
+#     }
 # }
 
 ## Django settings
