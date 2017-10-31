@@ -96,16 +96,28 @@ def create_authorisation(request):
 
     try:
         name = request.POST['name'].lower()
-        suffix_match = (request.POST.get('suffix_match', 'false').lower() == 'true')
+        suffix_match = False # disabled until validation is added
         secret = request.POST.get('secret', '')
     except:
         return JsonResponse({'result': False}, status=400)
 
     if settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS is not None:
-        if secret not in settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS:
+        user = settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS.get(secret, None)
+        if user is None:
             return JsonResponse({'result': False}, status=403)
         else:
-            account = settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS[secret]
+            allowed = True
+            if 'permit' in user:
+                allowed = False
+                for permit_name in user['permit']:
+                    print(permit_name)
+                    if (permit_name.startswith('.') and name.endswith(permit_name)) or (not permit_name.startswith('.') and permit_name == name):
+                        allowed = True
+                        break
+            if not allowed:
+                return JsonResponse({'result': False}, status=403)
+
+            account = user['name']
     else:
         account = ''
 
@@ -146,4 +158,3 @@ def expire_authorisation(request):
             return JsonResponse({"result": {'authorisation': authorisation.name, 'suffix_match': authorisation.suffix_match, 'secret': authorisation.secret}})
     
     return(JsonResponse({'result': False}, status=403))
-
