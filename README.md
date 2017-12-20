@@ -1,6 +1,6 @@
 # acmeproxy
 
-This PowerDNS backend only serves [ACME dns-01 challenge responses](https://tools.ietf.org/html/draft-ietf-acme-acme-01), and exposes an HTTPS API to permit those challenge responses to be published by automated certificate renewal tools.
+This PowerDNS backend only serves [ACME dns-01 challenge responses](https://letsencrypt.org/docs/acme-protocol-updates/), and exposes an HTTPS API to permit those challenge responses to be published by automated certificate renewal tools.
 
 ## Requirements
 
@@ -11,9 +11,11 @@ For convenience sake the Ubuntu Xenial packages for django and tabulate are targ
 
     apt-get install python3-django python3-tabulate
 
-## Use with dehydrated
+## Use with dehydrated or certbot
 
-An example [dehydrated](http://dehydrated.de/) plugin is supplied in the `plugins` directory. Edit this plugin to specify the location of your acmeproxy installation and authorisation key registered with the API, then call it as a dns-01 hook.
+Example plugins for [dehydrated](http://dehydrated.de/) and [certbot](https://certbot.eff.org/) are supplied in the `plugins` directory. Edit these plugin to specify the location of your acmeproxy installation and authorisation key registered with the API, then call them as a dns-01 hook.
+
+For instance, with dehydrated:
 
     dehydrated -c -t dns-01 -k ./acmeproxy-dehydrated.sh -d secure.example.com
 
