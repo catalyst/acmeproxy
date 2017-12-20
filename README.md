@@ -50,7 +50,6 @@ You must edit the `settings.py` file in `acmeproxy/acmeproxy` to set SOA details
 
     config-dir=/etc/powerdns
     include-dir=/etc/powerdns/pdns.d
-    security-poll-suffix=
     setgid=pdns
     setuid=pdns
 
