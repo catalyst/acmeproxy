@@ -23,13 +23,10 @@ def get_authorisation(name, secret):
     Attempts to find a valid authorisation for the given name and secret combination.
     """
 
-    try: # try and find an explicit authorisation, or a wildcard for one label up
+    try: # try and find an explicit authorisation
         authorisation = Authorisation.objects.get(name__iexact=name, secret=secret)
     except ObjectDoesNotExist:
-        try:
-            authorisation = Authorisation.objects.get(name__iexact='.'.join(name.split('.')[1:]), secret=secret, suffix_match=True)
-        except ObjectDoesNotExist:
-            return(False)
+        return(False)
 
     return(authorisation)
 
@@ -58,7 +55,7 @@ def publish_response(request):
         except:
             return(JsonResponse({'result': False, 'error': 'Could not save response in database'}, status=500))
         else:
-            return(JsonResponse({"result": {'authorisation': authorisation.name, 'suffix_match': authorisation.suffix_match, 'published': True}}))
+            return(JsonResponse({"result": {'authorisation': authorisation.name, 'published': True}}))
 
     return(JsonResponse({'result': False, 'error': 'Invalid authorisation token'}, status=403))
     
@@ -81,7 +78,7 @@ def expire_response(request):
        
     if authorisation:
         expired = Response.objects.filter(name__iexact=name).update(expired_at=timezone.now()) > 0
-        return JsonResponse({"result": {'authorisation': authorisation.name, 'suffix_match': authorisation.suffix_match, 'expired': expired}})
+        return JsonResponse({"result": {'authorisation': authorisation.name, 'expired': expired}})
     
     return(JsonResponse({'result': False, 'error': 'Invalid authorisation token'}, status=403))
 
@@ -96,7 +93,6 @@ def create_authorisation(request):
 
     try:
         name = request.POST['name'].lower()
-        suffix_match = False # disabled until validation is added
         secret = request.POST.get('secret', '')
     except:
         return JsonResponse({'result': False, 'error': 'Missing parameters in POST'}, status=400)
@@ -121,7 +117,7 @@ def create_authorisation(request):
     else:
         account = ''
 
-    db_authorisation = Authorisation(name=name, suffix_match=suffix_match, created_by_ip=client_ip(request), account=account)
+    db_authorisation = Authorisation(name=name, created_by_ip=client_ip(request), account=account)
     db_authorisation.reset_secret()
 
     try:
@@ -129,7 +125,7 @@ def create_authorisation(request):
     except:
         return JsonResponse({'result': False, 'error': 'Could not save authorisation in database'}, status=500)
 
-    return JsonResponse({"result": {'authorisation': db_authorisation.name, 'suffix_match': db_authorisation.suffix_match, 'secret': db_authorisation.secret}})
+    return JsonResponse({"result": {'authorisation': db_authorisation.name, 'secret': db_authorisation.secret}})
     
 @csrf_exempt
 def expire_authorisation(request):
@@ -155,6 +151,6 @@ def expire_authorisation(request):
         except:
             return JsonResponse({'result': False, 'error': 'Could not save authorisation in database'}, status=500)
         else:
-            return JsonResponse({"result": {'authorisation': authorisation.name, 'suffix_match': authorisation.suffix_match, 'secret': authorisation.secret}})
+            return JsonResponse({"result": {'authorisation': authorisation.name, 'secret': authorisation.secret}})
     
     return(JsonResponse({'result': False, 'error': 'Invalid authorisation token'}, status=403))
