@@ -1,4 +1,5 @@
 from datetime import timedelta
+import hmac
 import time
 
 from django.conf import settings
@@ -24,7 +25,9 @@ def get_authorisation(name, secret):
     """
 
     try: # try and find an explicit authorisation
-        authorisation = Authorisation.objects.get(name__iexact=name, secret=secret)
+        authorisation = Authorisation.objects.get(name__iexact=name)
+        if not hmac.compare_digest(authorisation.secret, secret):
+            raise ObjectDoesNotExist
     except ObjectDoesNotExist:
         return(False)
 
