@@ -3,7 +3,7 @@ from collections import OrderedDict
 from tabulate import tabulate
 
 from django.core.management.base import BaseCommand, CommandError
-from proxy.models import *
+from acmeproxy.proxy.models import *
 
 class Command(BaseCommand):
     help = 'List all of the granted authorisations'

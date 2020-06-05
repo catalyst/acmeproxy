@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import dateparse, timezone
 from django.db.models import Q
 
-from proxy.models import *
+from acmeproxy.proxy.models import *
 
 class Command(BaseCommand):
     help = 'Called by PowerDNS to exchange DNS data'

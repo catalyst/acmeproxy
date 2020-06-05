@@ -1,11 +1,13 @@
 import os
 
+DEBUG=True
+
 ## Configuration to change when deploying acmeproxy
 
 LANGUAGE_CODE = 'en-nz'
 TIME_ZONE = 'Pacific/Auckland'
 SECRET_KEY = 'set this to something random (e.g. dd if=/dev/urandom bs=1 count=16 | xxd -ps)'
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 ACMEPROXY_SOA_HOSTNAME = 'acme-proxy-ns1.example.com'
 ACMEPROXY_SOA_CONTACT = 'hostmaster.example.com'
@@ -38,7 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'proxy',
+    'acmeproxy.proxy',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -52,7 +54,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'acmeproxy.urls'
+ROOT_URLCONF = 'acmeproxy.acmeproxy.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'acmeproxy.wsgi.application'
+WSGI_APPLICATION = 'acmeproxy.acmeproxy.wsgi.application'
 
 
 # Database

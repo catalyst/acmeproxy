@@ -5,7 +5,7 @@ from tabulate import tabulate
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import dateparse, timezone
 
-from proxy.models import *
+from acmeproxy.proxy.models import *
 
 class Command(BaseCommand):
     help = 'List all published responses for a given date range'
