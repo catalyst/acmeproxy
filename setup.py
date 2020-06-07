@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 requirements = [
-    "django~=1.8.0",
+    "django~=2.2.0",
     "tabulate"
 ]
 
