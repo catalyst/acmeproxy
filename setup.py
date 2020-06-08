@@ -1,9 +1,6 @@
 from setuptools import find_packages, setup
 
-requirements = [
-    "django~=2.2.0",
-    "tabulate"
-]
+requirements = ["django~=2.2.0", "tabulate"]
 
 
 packages = find_packages(where="./", include=["acmeproxy", "acmeproxy.*"],)
@@ -19,9 +16,7 @@ setup(
     author_email="opsdev@catalyst.net.nz",
     python_requires=">=3.6",
     license="GPLv3",
-    package_dir={
-        "acmeproxy": "acmeproxy",
-    },
+    package_dir={"acmeproxy": "acmeproxy"},
     packages=packages,
     install_requires=requirements,
     zip_safe=False,

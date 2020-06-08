@@ -1,5 +1,3 @@
-import os
-
 from acmeproxy.acmeproxy import settings  # noqa: F401
 from acmeproxy.acmeproxy.settings import *  # noqa: F401, F403
 

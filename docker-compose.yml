@@ -4,8 +4,6 @@ services:
     build:
       context: ./
     command: /code/docker-support/dev-init.sh
-    environment:
-      TIAKI_TEST_MODE: 'db'
     ports:
       - "8080:8080"
     tmpfs:
@@ -16,7 +14,7 @@ services:
         target: /code
       - type: bind
         source: ./docker-support/dev_settings.py
-        target: /tiaki_settings.py
+        target: /acmeproxy_settings.py
         read_only: true
       - ./docker-support/logs/webapp:/logs/
       - type: tmpfs

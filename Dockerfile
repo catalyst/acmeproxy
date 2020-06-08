@@ -57,9 +57,9 @@ RUN set -ex \
     && PYTHONWARNINGS= pip install --exists-action=w \
         -e . \
     && PYTHONWARNINGS= pipenv sync --dev \
-    && ln -s /tiaki_settings.py "$(python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())')/tiaki_settings.py"
+    && ln -s /acmeproxy_settings.py "$(python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())')/acmeproxy_settings.py"
 
 ENTRYPOINT ["/usr/local/bin/dumb-init"]
 
-ENV DJANGO_SETTINGS_MODULE tiaki_settings
+ENV DJANGO_SETTINGS_MODULE acmeproxy_settings
 EXPOSE 8080
