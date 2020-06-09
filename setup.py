@@ -10,7 +10,7 @@ if not packages:
 setup(
     name="acmeproxy",
     version="0.1",
-    description="Proxt let's encrypt stuff",
+    description="PowerDNS backend for serving ACME dns-01 challenge responses",
     url="https://github.com/catalyst/acmeproxy/",
     author="Catalyst.net.nz Ltd.",
     author_email="opsdev@catalyst.net.nz",
@@ -23,7 +23,6 @@ setup(
     include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
@@ -31,6 +30,5 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Security",
     ],
 )

@@ -6,8 +6,6 @@ services:
     command: /code/docker-support/dev-init.sh
     ports:
       - "8080:8080"
-    tmpfs:
-      - /static
     volumes:
       - type: bind
         source: ./
@@ -16,8 +14,6 @@ services:
         source: ./docker-support/dev_settings.py
         target: /acmeproxy_settings.py
         read_only: true
-      - ./docker-support/logs/webapp:/logs/
       - type: tmpfs
         target: /tmp
     restart: always
-

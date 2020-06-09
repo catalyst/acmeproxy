@@ -6,10 +6,6 @@ RUN set -ex \
     && apt-get install --no-install-recommends --no-install-suggests --quiet --yes --verbose-versions \
         build-essential \
         gettext \
-        libldap2-dev \
-        libsasl2-dev \
-        libssl-dev \
-        libpq5 \
         python3 \
         python3-dev \
         python3-pip \
@@ -26,8 +22,6 @@ RUN set -ex \
         dumb-init \
         wheel \
     && rm -rf /root/.cache/pip
-
-ARG MAXMIND_LICENSE_KEY
 
 RUN set -ex \
     && python3 -m venv /venv \
