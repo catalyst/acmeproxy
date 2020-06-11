@@ -1,10 +1,10 @@
-from datetime import timedelta
 import binascii
 import os
+from datetime import timedelta
 
-from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.utils import timezone
+
 
 class Authorisation(models.Model):
     name = models.CharField(max_length=255)
@@ -14,10 +14,13 @@ class Authorisation(models.Model):
     account = models.CharField(max_length=255)
 
     def __str__(self):
-        return(self.name)
+        return self.name
 
     def reset_secret(self):
-        self.secret = binascii.hexlify(os.urandom(16)).decode('cp437') # generate a random 128 bit secret
+        self.secret = binascii.hexlify(os.urandom(16)).decode(
+            "cp437"
+        )  # generate a random 128 bit secret
+
 
 class Response(models.Model):
     name = models.CharField(max_length=255)
@@ -27,9 +30,12 @@ class Response(models.Model):
     expired_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return("_acme-challenge.%s IN TXT %s" % (self.name, self.response))
+        return "_acme-challenge.%s IN TXT %s" % (self.name, self.response)
 
     def live(self):
         threshold = timezone.now() - timedelta(minutes=5)
-        return(self.created_at > threshold and (self.expired_at is None or self.expired_at > timezone.now()))
+        return self.created_at > threshold and (
+            self.expired_at is None or self.expired_at > timezone.now()
+        )
+
     live.boolean = True

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Change this path to where manage.py lives
-cd /opt/acmeproxy/acmeproxy
-./manage.py pipeapi

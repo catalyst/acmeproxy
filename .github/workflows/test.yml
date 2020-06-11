@@ -1,0 +1,25 @@
+name: Lint & Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  lint:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install linters
+      run: |
+        pip3 install setuptools flake8 black isort
+    - name: Lint with flake8
+      run: |
+        python3 -m flake8 .
+    - name: Lint with isort
+      run: |
+        python3 -m isort --check-only -rc .
+    - name: Lint with black
+      run: |
+        python3 -m black --check --diff .

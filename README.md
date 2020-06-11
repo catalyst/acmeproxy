@@ -2,14 +2,13 @@
 
 This PowerDNS backend only serves [ACME dns-01 challenge responses](https://letsencrypt.org/docs/acme-protocol-updates/), and exposes an HTTPS API to permit those challenge responses to be published by automated certificate renewal tools.
 
-## Requirements
+## Dev environment
 
-    django==1.8
-    tabulate
+You can start a dev environemnt with
 
-For convenience sake the Ubuntu Xenial packages for django and tabulate are targeted, you can install the dependencies with:
+    docker-compose up
 
-    apt-get install python3-django python3-tabulate
+The app will now be available at http://localhost:8080
 
 ## Use with dehydrated or certbot
 
@@ -21,7 +20,13 @@ For instance, with dehydrated:
 
 ## Deployment
 
-You must edit the `settings.py` file in `acmeproxy/acmeproxy` to set SOA details and optionally to enable authentication. At present sessions are not used so SECRET_KEY could be left blank, but it is suggested this be set to allow for future use.
+Install the app in a virtual environemnt with
+
+    pip install .
+
+In a new directory make  a copy of `example_settings.py` called `acmeproxy_settings.py`. Then fill in all the values.
+
+With your working directory set as the newly created directory you can now run the app as a wsgi app. With the environment variable `DJANGO_SETTINGS_MODULE` set to `acmeproxy_settings`. and the wsgi app at `acmeproxy.acmeproxy.wsgi:application`.
 
 ### Example Apache configuration when certbot is used for the API certificate
 
@@ -45,6 +50,14 @@ You must edit the `settings.py` file in `acmeproxy/acmeproxy` to set SOA details
     </VirtualHost>
 
 ### Example PowerDNS configuration
+
+In the directory with your settings file make a new file called `backend`.
+
+In it put
+
+    #!/bin/sh
+    export DJANGO_SETTINGS_MODULE=acmeproxy_settings
+    /path/to/venv/django-admin pipeapi
 
 #### /etc/powerdns/pdns.conf
 
