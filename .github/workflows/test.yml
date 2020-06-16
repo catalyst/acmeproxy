@@ -5,6 +5,25 @@ on:
   - pull_request
 
 jobs:
+  test:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - name: Install dependencies
+      run: |
+        pip install pipenv
+        pipenv sync --dev
+    - name: Test with pytest
+      env:
+        DJANGO_SETTINGS_MODULE: acmeproxy_settings
+      run: |
+        pipenv run pytest -v
   lint:
 
     runs-on: ubuntu-18.04

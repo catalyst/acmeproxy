@@ -28,4 +28,4 @@ class Command(BaseCommand):
             for entry in table
         ]
 
-        print(tabulate(table, headers="keys"))
+        self.stdout.write(tabulate(table, headers="keys"))

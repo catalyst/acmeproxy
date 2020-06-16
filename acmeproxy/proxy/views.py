@@ -140,7 +140,6 @@ def create_authorisation(request):
             if "permit" in user:
                 allowed = False
                 for permit_name in user["permit"]:
-                    print(permit_name)
                     if (permit_name.startswith(".") and name.endswith(permit_name)) or (
                         not permit_name.startswith(".") and permit_name == name
                     ):

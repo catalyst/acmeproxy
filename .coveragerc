@@ -1,0 +1,17 @@
+[run]
+branch = True
+context = ${CI_JOB_NAME-local}
+data_file = .coverage/.coverage.${CI_JOB_NAME-local}.${CI_JOB_ID-run}
+parallel = True
+
+plugins =
+    django_coverage_plugin
+
+omit =
+    # omit anything in a .local directory anywhere
+    */.local/*
+    # omit everything in /usr
+    /usr/*
+
+[report]
+precision = 2
