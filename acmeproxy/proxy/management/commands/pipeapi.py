@@ -16,15 +16,14 @@ class Command(BaseCommand):
     def format_data(qname, qtype, answer, ttl=60):
         return "\t".join([qname, "IN", qtype, str(ttl), "1", answer])
 
-    @staticmethod
-    def send(answer_tag, answer_data=None):
+    def send(self, answer_tag, answer_data=None):
         if answer_data:
             answer_data = "\t{}".format(answer_data)
         else:
             answer_data = ""
         line = "{}{}\n".format(answer_tag, answer_data)
-        sys.stdout.write(line)
-        sys.stdout.flush()
+        self.stdout.write(line)
+        self.stdout.flush()
 
     @staticmethod
     def strip_labels(name, count):
@@ -119,7 +118,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # handshake and accept version 1 of the ABI
         line = sys.stdin.readline()
-        query, version = line.strip().split()
+        try:
+            query, version = line.strip().split()
+        except ValueError:
+            self.send("FAIL")
+            sys.exit(1)
+
         if query != "HELO" and version != "1":
             self.send("FAIL")
             sys.exit(1)

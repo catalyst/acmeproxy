@@ -39,6 +39,8 @@ RUN set -ex \
 
 COPY ./ /code/
 
+WORKDIR /code
+
 ENV VIRTUAL_ENV=/venv \
     PATH=/venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \

@@ -60,4 +60,4 @@ class Command(BaseCommand):
             OrderedDict(sorted(entry.items(), key=lambda x: x[0], reverse=True))
             for entry in table
         ]
-        print(tabulate(table, headers="keys"))
+        self.stdout.write(tabulate(table, headers="keys"))
