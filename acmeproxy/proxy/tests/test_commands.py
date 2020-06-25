@@ -4,31 +4,26 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from acmeproxy.proxy.models import Authorisation, Response
+from acmeproxy.proxy.models import Authorisation
+from acmeproxy.proxy.tests.util import create_authorisation, create_response
 
 
 @pytest.mark.django_db
 class TestDeleteAuthorisation:
     def test_successful_delete(self):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
+        create_authorisation(name="example.com")
         out = StringIO()
         call_command("deleteauthorisation", "example.com", stdout=out)
         assert Authorisation.objects.count() == 0
 
-    def test_different_name(self):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
+    def test_no_domain_matched_name(self):
+        create_authorisation(name="example.com")
         out = StringIO()
         with pytest.raises(CommandError):
             call_command("deleteauthorisation", "example.org", stdout=out)
 
     def test_mixed_case(self):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
+        create_authorisation(name="example.com")
         out = StringIO()
         call_command("deleteauthorisation", "eXAmple.cOm", stdout=out)
         assert Authorisation.objects.count() == 0
@@ -37,9 +32,7 @@ class TestDeleteAuthorisation:
 @pytest.mark.django_db
 class TestListAuthorisations:
     def test_successful_list(self):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
+        create_authorisation(name="example.com")
         out = StringIO()
         call_command("listauthorisations", stdout=out)
         assert "example.com" in out.getvalue()
@@ -53,12 +46,8 @@ class TestListAuthorisations:
 @pytest.mark.django_db
 class TestListResponses:
     def test_successful_list(self):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
-        Response.objects.create(
-            name="example.com", response="test_response", created_by_ip="127.0.0.1"
-        )
+        create_authorisation(name="example.com")
+        create_response(name="example.com")
         out = StringIO()
         call_command("listresponses", stdout=out)
         assert "example.com" in out.getvalue()
@@ -109,12 +98,8 @@ class TestPipeAPI:
         ],
     )
     def test_query(self, monkeypatch, test_input, output):
-        Authorisation.objects.create(
-            name="example.com", secret="test_secret", created_by_ip="127.0.0.1"
-        )
-        Response.objects.create(
-            name="example.com", response="test_response", created_by_ip="127.0.0.1"
-        )
+        create_authorisation(name="example.com")
+        create_response(name="example.com")
         out = StringIO()
         monkeypatch.setattr(
             "sys.stdin", StringIO(test_input),
