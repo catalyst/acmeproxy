@@ -12,7 +12,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name="response", old_name="created", new_name="created_at",
+            model_name="response",
+            old_name="created",
+            new_name="created_at",
         ),
         migrations.AlterField(
             model_name="response",

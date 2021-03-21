@@ -3,7 +3,10 @@ from setuptools import find_packages, setup
 requirements = ["django~=2.2.0", "djangorestframework~=3.11.0", "tabulate"]
 
 
-packages = find_packages(where="./", include=["acmeproxy", "acmeproxy.*"],)
+packages = find_packages(
+    where="./",
+    include=["acmeproxy", "acmeproxy.*"],
+)
 if not packages:
     raise ValueError("No packages detected.")
 

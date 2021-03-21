@@ -17,4 +17,3 @@ django-coverage-plugin = "~=1.8.0"
 
 [requires]
 python_version = "3.6"
-
