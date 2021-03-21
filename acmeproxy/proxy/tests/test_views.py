@@ -96,7 +96,8 @@ class TestAuthroisation:
     ):
         settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS = auth_settings
         resp = client.post(
-            "/create_authorisation", data={"name": domain, "secret": secret},
+            "/create_authorisation",
+            data={"name": domain, "secret": secret},
         )
         assert resp.status_code == status_code
 
@@ -129,12 +130,18 @@ class TestAuthroisation:
 
     def test_expire_missing_name(self, client):
         create_authorisation(name="example.com")
-        resp = client.post("/expire_authorisation", data={"secret": "test_secret"},)
+        resp = client.post(
+            "/expire_authorisation",
+            data={"secret": "test_secret"},
+        )
         assert resp.status_code == 400
 
     def test_expire_missing_secret(self, client):
         create_authorisation(name="example.com")
-        resp = client.post("/expire_authorisation", data={"name": "example.com"},)
+        resp = client.post(
+            "/expire_authorisation",
+            data={"name": "example.com"},
+        )
         assert resp.status_code == 400
 
     def test_create_wrong_method(self, client):
@@ -200,7 +207,8 @@ class TestResponse:
     def test_publish_missing_response(self, client):
         create_authorisation(name="example.com")
         resp = client.post(
-            "/publish_response", data={"name": "example.com", "secret": "test_secret"},
+            "/publish_response",
+            data={"name": "example.com", "secret": "test_secret"},
         )
         assert resp.status_code == 400
 
@@ -216,7 +224,8 @@ class TestResponse:
         create_authorisation(name="example.com")
         create_response(name="example.com")
         resp = client.post(
-            "/expire_response", data={"name": "example.com", "secret": "test_secret"},
+            "/expire_response",
+            data={"name": "example.com", "secret": "test_secret"},
         )
         assert resp.status_code == 200
         assert resp.json()["result"]["authorisation"] == "example.com"
@@ -225,7 +234,8 @@ class TestResponse:
         create_authorisation(name="example.com")
         create_response(name="example.com")
         resp = client.post(
-            "/expire_response", data={"name": "exAMple.Com", "secret": "test_secret"},
+            "/expire_response",
+            data={"name": "exAMple.Com", "secret": "test_secret"},
         )
         assert resp.status_code == 200
         assert resp.json()["result"]["authorisation"] == "example.com"
@@ -233,20 +243,27 @@ class TestResponse:
     def test_expire_missing_name(self, client):
         create_authorisation(name="example.com")
         create_response(name="example.com")
-        resp = client.post("/expire_response", data={"secret": "test_secret"},)
+        resp = client.post(
+            "/expire_response",
+            data={"secret": "test_secret"},
+        )
         assert resp.status_code == 400
 
     def test_expire_missing_secret(self, client):
         create_authorisation(name="example.com")
         create_response(name="example.com")
-        resp = client.post("/expire_response", data={"name": "example.com"},)
+        resp = client.post(
+            "/expire_response",
+            data={"name": "example.com"},
+        )
         assert resp.status_code == 400
 
     def test_expire_wrong_secret(self, client):
         create_authorisation(name="example.com")
         create_response(name="example.com")
         resp = client.post(
-            "/expire_response", data={"name": "example.com", "secret": "wrong_secret"},
+            "/expire_response",
+            data={"name": "example.com", "secret": "wrong_secret"},
         )
         assert resp.status_code == 403
         assert resp.json()["result"] is False

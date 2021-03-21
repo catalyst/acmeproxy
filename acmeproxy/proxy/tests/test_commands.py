@@ -80,9 +80,18 @@ class TestPipeAPI:
                 "HELO\t1\nQ\t_acme-challenge.example.com\th\tTXT\th\t127.0.0.1\nDEBUGQUIT",
                 "OK\tACME Proxy API\nDATA\t_acme-challenge.example.com	IN\tTXT	5\t1\ttest_response\nEND\n",
             ),
-            ("RANDOM GARBAGE", "FAIL\n",),
-            ("RANDOMGARBAGE", "FAIL\n",),
-            ("HELO\t1\nRANDOMGARBAGE\nDEBUGQUIT", "OK\tACME Proxy API\n",),
+            (
+                "RANDOM GARBAGE",
+                "FAIL\n",
+            ),
+            (
+                "RANDOMGARBAGE",
+                "FAIL\n",
+            ),
+            (
+                "HELO\t1\nRANDOMGARBAGE\nDEBUGQUIT",
+                "OK\tACME Proxy API\n",
+            ),
             (
                 "HELO\t1\nR random correct number of things\nDEBUGQUIT",
                 "OK\tACME Proxy API\nEND\n",
@@ -102,7 +111,8 @@ class TestPipeAPI:
         create_response(name="example.com")
         out = StringIO()
         monkeypatch.setattr(
-            "sys.stdin", StringIO(test_input),
+            "sys.stdin",
+            StringIO(test_input),
         )
         monkeypatch.setattr("time.time", lambda: 1592267735)
         with pytest.raises(SystemExit):

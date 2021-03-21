@@ -10,6 +10,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterUniqueTogether(name="authorisation", unique_together=set(),),
-        migrations.RemoveField(model_name="authorisation", name="suffix_match",),
+        migrations.AlterUniqueTogether(
+            name="authorisation",
+            unique_together=set(),
+        ),
+        migrations.RemoveField(
+            model_name="authorisation",
+            name="suffix_match",
+        ),
     ]

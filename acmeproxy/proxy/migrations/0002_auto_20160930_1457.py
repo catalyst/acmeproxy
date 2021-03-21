@@ -11,5 +11,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(old_name="Authorization", new_name="Authorisation",),
+        migrations.RenameModel(
+            old_name="Authorization",
+            new_name="Authorisation",
+        ),
     ]

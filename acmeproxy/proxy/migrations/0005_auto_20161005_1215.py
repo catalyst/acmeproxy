@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterUniqueTogether(
-            name="authorisation", unique_together=set([("name", "suffix_match")]),
+            name="authorisation",
+            unique_together=set([("name", "suffix_match")]),
         ),
     ]
