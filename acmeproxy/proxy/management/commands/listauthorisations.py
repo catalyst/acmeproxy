@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.core.management.base import BaseCommand, CommandError
 from tabulate import tabulate
 
-from acmeproxy.proxy.models import Authorisation
+from proxy.models import Authorisation
 
 
 class Command(BaseCommand):

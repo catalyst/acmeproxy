@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
 
-from acmeproxy.proxy.models import Response
+from proxy.models import Response
 
 
 class Command(BaseCommand):
