@@ -7,17 +7,8 @@ from rest_framework import serializers
 from rest_framework.response import Response as APIResponse
 from rest_framework.views import APIView
 
-from .models import Authorisation, Response
-
-
-# stolen from https://stackoverflow.com/a/4581997
-def client_ip(request):
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
+from .models import Account, Authorisation, Response
+from .utils import client_ip
 
 
 def get_authorisation(name, secret):
@@ -108,9 +99,10 @@ class ExpireResponse(APIView):
 
 class NameSecretOptionalSerializer(serializers.Serializer):
     name = serializers.CharField()
-    secret = serializers.CharField(required=False)
+    secret = serializers.CharField()
 
 
+# XXX: multiple authorisations for a single domain are permitted
 class CreateAuthorisation(APIView):
     def post(self, request, format=None):
         serializer = NameSecretOptionalSerializer(data=request.data)
@@ -118,36 +110,30 @@ class CreateAuthorisation(APIView):
             return APIResponse(serializer.errors, status=400)
 
         name = serializer.data["name"].lower()
-        secret = serializer.data.get("secret", "")
+        secret = serializer.data.get("secret")
 
-        if settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS is not None:
-            user = settings.ACMEPROXY_AUTHORISATION_CREATION_SECRETS.get(secret, None)
-            if user is None:
-                return APIResponse(
-                    {"result": False, "error": "Invalid account token"}, status=403
-                )
-            else:
-                allowed = True
-                if "permit" in user:
-                    allowed = False
-                    for permit_name in user["permit"]:
-                        if (
-                            permit_name.startswith(".") and name.endswith(permit_name)
-                        ) or (not permit_name.startswith(".") and permit_name == name):
-                            allowed = True
-                            break
-                if not allowed:
-                    return APIResponse(
-                        {
-                            "result": False,
-                            "error": "Changes to this domain are not permitted with this account token",
-                        },
-                        status=403,
-                    )
-
-                account = user["name"]
+        account_query = Account.objects.filter(secret=secret)
+        if len(account_query) != 1:
+            return APIResponse(
+                {"result": False, "error": "Invalid account token"}, status=403
+            )
         else:
-            account = ""
+            account = account_query[0]
+            allowed = False
+            for permit_name in account.permit_domains.replace(" ", "").split(","):
+                if (permit_name == "." or
+                        (permit_name.startswith(".") and name.endswith(permit_name)) or
+                        (not permit_name.startswith(".") and permit_name == name)):
+                    allowed = True
+                    break
+            if not allowed:
+                return APIResponse(
+                    {
+                        "result": False,
+                        "error": "Changes to this domain are not permitted with this account token",
+                    },
+                    status=403,
+                )
 
         db_authorisation = Authorisation(
             name=name, created_by_ip=client_ip(request), account=account

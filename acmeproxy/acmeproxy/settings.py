@@ -18,8 +18,7 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "acmeproxy.proxy",
+    "proxy",
 )
 
 MIDDLEWARE = (
@@ -32,7 +31,7 @@ MIDDLEWARE = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
 
-ROOT_URLCONF = "acmeproxy.acmeproxy.urls"
+ROOT_URLCONF = "acmeproxy.urls"
 
 TEMPLATES = [
     {
@@ -50,7 +49,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "acmeproxy.acmeproxy.wsgi.application"
+WSGI_APPLICATION = "acmeproxy.wsgi.application"
 
 
 # Database
@@ -58,9 +57,12 @@ WSGI_APPLICATION = "acmeproxy.acmeproxy.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    }
+        "ENGINE": "django_cockroachdb",
+        "NAME": "<database name>",
+        "USER": "<user>",
+        "PASSWORD": "<password>",
+        "HOST": "<server name/ip>",
+        "PORT": "<port>",
 }
 
 

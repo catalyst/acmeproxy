@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import dateparse
 from tabulate import tabulate
 
-from acmeproxy.proxy.models import Response
+from proxy.models import Response
 
 
 class Command(BaseCommand):

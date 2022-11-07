@@ -2,14 +2,6 @@
 
 This PowerDNS backend only serves [ACME dns-01 challenge responses](https://letsencrypt.org/docs/acme-protocol-updates/), and exposes an HTTPS API to permit those challenge responses to be published by automated certificate renewal tools.
 
-## Dev environment
-
-You can start a dev environemnt with
-
-    docker-compose up
-
-The app will now be available at http://localhost:8080
-
 ## Use with dehydrated or certbot
 
 Example plugins for [dehydrated](http://dehydrated.de/) and [certbot](https://certbot.eff.org/) are supplied in the `plugins` directory. Edit these plugin to specify the location of your acmeproxy installation and authorisation key registered with the API, then call them as a dns-01 hook.
@@ -20,11 +12,9 @@ For instance, with dehydrated:
 
 ## Deployment
 
-Install the app in a virtual environemnt with
+The major requirements are the `Django` and `djangorestframework` modules. An example `requirements.txt` file has been provided. The `acmeproxy` directory, which contains `manage.py`, should be the root directory of your deployment.
 
-    pip install .
-
-In a new directory make  a copy of `example_settings.py` called `acmeproxy_settings.py`. Then fill in all the values.
+In a new directory make a copy of `example_settings.py` called `acmeproxy_settings.py`. Then fill in all the values.
 
 With your working directory set as the newly created directory you can now run the app as a wsgi app. With the environment variable `DJANGO_SETTINGS_MODULE` set to `acmeproxy_settings`. and the wsgi app at `acmeproxy.acmeproxy.wsgi:application`.
 
@@ -78,14 +68,16 @@ In it put
 
 All API endpoints will return JSON containing a `result` key describing the result of the operation. If an operation fails this will be `false`, and the HTTP response code will indicate the nature of the failure.
 
+#### Accounts
+
+Accounts do not currently have an API endpoint and should be created via the `/admin` interface.
+
 #### Authorisations
 
 Before delegating any names an **authorisation** should be requested using the `create_authorisation` endpoint.
 
-    $ curl --data "name=secure.example.com" https://acme-proxy-ns1.example.com/create_authorisation
+    $ curl --data "name=secure.example.com&secret=fa522734913ebe4d4e345e7a77e553c0" https://acme-proxy-ns1.example.com/create_authorisation
     {"result": {"secret": "52f562aedc99383c6af848bc7016380a", "authorisation": "secure.example.com", "suffix_match": false}}
-
-If authentication is enabled in your installation (with the `ACMEPROXY_AUTHORISATION_CREATION_SECRETS` setting configured to something other than `None`) you will also need to supply a `secret` field corresponding to the account being used.
 
 The randomly generated `secret` returned by this call is then used to identify this authorisation in further calls to the API.
 
@@ -122,7 +114,7 @@ Once the delegation is made a response can be published using the `publish_respo
 
 There are several Django management commands available in the `proxy` app.
 
-#### listauthorisations 
+#### listauthorisations
 
 Lists all authorisations present in the database.
 
